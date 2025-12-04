@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plataforma Interactiva de Investigación</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-50">
+    <div class="flex h-screen bg-gray-50">
+        <!-- Sidebar -->
+        <div class="w-80 bg-white border-r border-gray-200 overflow-y-auto">
+            <div class="p-6">
+                <div class="flex items-center gap-3 mb-8">
+                    <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold">PI</div>
+                    <h1 class="text-xl font-bold text-gray-900">Plataforma Interactiva</h1>
+                </div>
+                
+                <div class="mb-8">
+                    <h2 class="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
+                        <i class="fas fa-book"></i> FACULTADES
+                    </h2>
+                    <button id="btn-todos" class="w-full bg-blue-500 text-white px-4 py-3 rounded-lg font-medium mb-2 hover:bg-blue-600 transition">
+                        Todos
+                    </button>
+                    <div id="facultades-list" class="space-y-2">
+                        <!-- Cargado dinámicamente -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col">
+            <!-- Header -->
+            <div class="bg-white border-b border-gray-200 px-8 py-4 flex items-center justify-between">
+                <div class="flex-1 max-w-md">
+                    <input type="text" id="search-input" placeholder="Buscar temas..." 
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="flex items-center gap-6">
+                    <button onclick="abrirPanelCrear()" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition flex items-center gap-2">
+                        <i class="fas fa-plus"></i>
+                        <span>Crear Card</span>
+                    </button>
+                    <button class="text-gray-600 hover:text-gray-900">
+                        <i class="fas fa-moon text-xl"></i>
+                    </button>
+                    <div class="flex items-center gap-2 text-gray-700">
+                        <span>Usuario</span>
+                        <i class="fas fa-user-circle text-2xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content Grid -->
+            <div class="flex-1 overflow-y-auto p-8">
+                <div id="contenidos-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Cargado dinámicamente -->
+                </div>
+                <div id="loading" class="flex items-center justify-center h-64">
+                    <div class="text-center">
+                        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+                        <p class="text-gray-600">Cargando contenidos...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Detalle -->
+    <div id="modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg max-w-2xl w-full max-h-96 overflow-y-auto">
+            <div class="p-6">
+                <div class="flex justify-between items-start mb-4">
+                    <div id="modal-header"></div>
+                    <button onclick="closeModal()" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times text-2xl"></i>
+                    </button>
+                </div>
+                <div id="modal-content"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Panel de Crear Card -->
+    <div id="panel-crear" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50">
+        <div class="absolute right-0 top-0 h-full w-full max-w-2xl bg-white shadow-xl overflow-y-auto">
+            <div class="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-10">
+                <h2 class="text-2xl font-bold text-gray-900">Crear Nueva Card</h2>
+                <button onclick="cerrarPanelCrear()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+            
+            <form id="form-crear-card" class="p-6 space-y-6">
+                <!-- Botón para llenar datos de prueba -->
+                <div class="flex justify-end mb-4">
+                    <button type="button" onclick="llenarDatosPrueba()" class="bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition flex items-center gap-2">
+                        <i class="fas fa-vial"></i> Llenar Datos de Prueba
+                    </button>
+                </div>
+                
+                <!-- Nota: El ID se genera automáticamente -->
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                    <div class="flex items-center gap-2 text-blue-800">
+                        <i class="fas fa-info-circle"></i>
+                        <p class="text-sm font-medium">El ID del contenido se generará automáticamente por el sistema</p>
+                    </div>
+                </div>
+
+                <!-- Facultad -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-900 mb-2">
+                        Facultad <span class="text-red-500">*</span>
+                    </label>
+                    <select id="id-facultad" required
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Seleccionar facultad...</option>
+                    </select>
+                </div>
+
+                <!-- Tema -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-900 mb-2">
+                        Tema <span class="text-red-500">*</span>
+                    </label>
+                    <select id="id-tema" required
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Seleccionar tema...</option>
+                    </select>
+                </div>
+
+                <!-- Tipo -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-900 mb-2">
+                        Tipo <span class="text-red-500">*</span>
+                    </label>
+                    <select id="tipo" required
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Seleccionar tipo...</option>
+                        <option value="Debate">Debate</option>
+                        <option value="Analisis">Análisis</option>
+                        <option value="Estudio">Estudio</option>
+                    </select>
+                </div>
+
+                <!-- Título -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-900 mb-2">
+                        Título <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" id="titulo" required maxlength="255"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Ingrese el título del contenido">
+                </div>
+
+                <!-- Resumen -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-900 mb-2">
+                        Resumen <span class="text-red-500">*</span>
+                    </label>
+                    <textarea id="resumen" required rows="4"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Descripción del contenido"></textarea>
+                </div>
+
+                <!-- Emoción Dominante -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-900 mb-2">
+                        Emoción Dominante
+                    </label>
+                    <select id="emocion-dominante"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Seleccionar...</option>
+                        <option value="Miedo">Miedo</option>
+                        <option value="Preocupación">Preocupación</option>
+                        <option value="Conflicto">Conflicto</option>
+                        <option value="Curiosidad">Curiosidad</option>
+                        <option value="Duda">Duda</option>
+                        <option value="Interés">Interés</option>
+                        <option value="Esperanza">Esperanza</option>
+                        <option value="Riesgo">Riesgo</option>
+                    </select>
+                </div>
+
+                <!-- Intensidad de Emoción -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-900 mb-2">
+                        Intensidad de Emoción (0.0 - 1.0)
+                    </label>
+                    <input type="number" id="emocion-intensidad" min="0" max="1" step="0.01"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="0.85">
+                </div>
+
+                <!-- Tipo de Fuente -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-900 mb-2">
+                        Tipo de Fuente
+                    </label>
+                    <select id="tipo-fuente"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Seleccionar...</option>
+                        <option value="paper">Paper Académico</option>
+                        <option value="think_tank">Think Tank</option>
+                        <option value="articulo">Artículo</option>
+                        <option value="libro">Libro</option>
+                        <option value="informe">Informe</option>
+                    </select>
+                </div>
+
+                <!-- Origen de Fuente -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-900 mb-2">
+                        Origen de Fuente
+                    </label>
+                    <input type="text" id="origen-fuente" maxlength="100"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="ej: paper_academico, think_tank">
+                </div>
+
+                <!-- URL Ver -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-900 mb-2">
+                        URL Ver
+                    </label>
+                    <input type="url" id="url-ver"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="https://ejemplo.com/articulo">
+                </div>
+
+                <!-- URL Descargar -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-900 mb-2">
+                        URL Descargar
+                    </label>
+                    <input type="url" id="url-descargar"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="https://ejemplo.com/descargar">
+                </div>
+
+                <!-- Tags -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-900 mb-2">
+                        Tags (separados por comas)
+                    </label>
+                    <input type="text" id="tags"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="tag1, tag2, tag3">
+                    <p class="text-xs text-gray-500 mt-1">Separe los tags con comas</p>
+                </div>
+
+                <!-- Mensaje de Error/Success -->
+                <div id="form-message" class="hidden"></div>
+
+                <!-- Botones -->
+                <div class="flex gap-4 pt-4 border-t border-gray-200">
+                    <button type="submit" 
+                        class="flex-1 bg-blue-500 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-600 transition">
+                        <i class="fas fa-save mr-2"></i>Crear Card
+                    </button>
+                    <button type="button" onclick="cerrarPanelCrear()"
+                        class="flex-1 bg-gray-200 text-gray-700 px-6 py-3 rounded-lg font-medium hover:bg-gray-300 transition">
+                        Cancelar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = "http://localhost:8000/api";
+        let facultadSeleccionada = null;
+        let todosContenidos = [];
+
+        // Inicializar
+        document.addEventListener("DOMContentLoaded", () => {
+            cargarFacultades();
+            cargarContenidos();
+            setupEventListeners();
+        });
+
+        function setupEventListeners() {
+            document.getElementById("btn-todos").addEventListener("click", () => {
+                facultadSeleccionada = null;
+                document.querySelectorAll(".facultad-btn").forEach(btn => btn.classList.remove("bg-blue-500", "text-white"));
+                document.getElementById("btn-todos").classList.add("bg-blue-500", "text-white");
+                cargarContenidos();
+            });
+
+            document.getElementById("search-input").addEventListener("input", (e) => {
+                const query = e.target.value.toLowerCase();
+                filtrarContenidos(query);
+            });
+        }
+
+        async function cargarFacultades() {
+            try {
+                const response = await fetch(`${API_BASE}/facultades`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    const container = document.getElementById("facultades-list");
+                    container.innerHTML = result.data.map(f => `
+                        <button class="facultad-btn w-full text-left px-4 py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition" 
+                            onclick="seleccionarFacultad('${f.id_facultad}', '${f.nombre}')">
+                            ${f.nombre}
+                        </button>
+                    `).join("");
+                }
+            } catch (error) {
+                console.error("Error cargando facultades:", error);
+            }
+        }
+
+        async function cargarContenidos() {
+            try {
+                const url = facultadSeleccionada 
+                    ? `${API_BASE}/contenidos?facultad=${facultadSeleccionada}`
+                    : `${API_BASE}/contenidos`;
+                
+                const response = await fetch(url);
+                const result = await response.json();
+                
+                if (result.success) {
+                    todosContenidos = result.data;
+                    renderizarContenidos(result.data);
+                }
+            } catch (error) {
+                console.error("Error cargando contenidos:", error);
+            }
+        }
+
+        function renderizarContenidos(contenidos) {
+            const grid = document.getElementById("contenidos-grid");
+            const loading = document.getElementById("loading");
+            
+            if (contenidos.length === 0) {
+                grid.innerHTML = '<p class="col-span-full text-center text-gray-500">No se encontraron contenidos</p>';
+                loading.classList.add("hidden");
+                return;
+            }
+
+            const contenidoHtml = contenidos.map(c => {
+                const fecha = c.created_at ? new Date(c.created_at) : null;
+                return `
+                    <div class="bg-white rounded-lg shadow hover:shadow-lg transition p-6 cursor-pointer" onclick="abrirModal('${c.id_contenido}')">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-sm" style="background-color: ${c.color_hex}">
+                                ${c.id_facultad}
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <h3 class="font-semibold text-gray-900 truncate">${c.titulo}</h3>
+                                <div class="flex flex-wrap items-center gap-2 text-sm text-gray-500">
+                                    <span>${c.facultad_nombre} • ${c.tipo}</span>
+                                    ${fecha ? `
+                                        <span class="text-xs text-gray-400" title="Creado el ${fecha.toLocaleString('es-ES')}">
+                                            <i class="far fa-calendar-alt mr-1"></i>
+                                            ${fecha.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })}
+                                        </span>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        </div>
+                        <h4 class="font-bold text-gray-900 mb-2 line-clamp-2">${c.titulo}</h4>
+                        <p class="text-sm text-gray-600 mb-4 line-clamp-3">${c.resumen}</p>
+                        <div class="flex items-center gap-4 text-xs text-gray-500">
+                            <span><i class="fas fa-eye"></i> Vista rápida</span>
+                            <span><i class="fas fa-download"></i> Descargar</span>
+                            <span><i class="fas fa-comment"></i> Comentar</span>
+                        </div>
+                    </div>
+                `;
+            }).join("");
+
+            grid.innerHTML = contenidoHtml;
+            loading.classList.add("hidden");
+        }
+
+        function filtrarContenidos(query) {
+            if (!query) {
+                renderizarContenidos(todosContenidos);
+                return;
+            }
+
+            const filtrados = todosContenidos.filter(c =>
+                c.titulo.toLowerCase().includes(query) ||
+                c.resumen.toLowerCase().includes(query) ||
+                c.tema_nombre.toLowerCase().includes(query)
+            );
+            
+            renderizarContenidos(filtrados);
+        }
+
+        function seleccionarFacultad(id, nombre) {
+            facultadSeleccionada = id;
+            document.querySelectorAll(".facultad-btn").forEach(btn => btn.classList.remove("bg-blue-500", "text-white"));
+            event.target.classList.add("bg-blue-500", "text-white");
+            document.getElementById("btn-todos").classList.remove("bg-blue-500", "text-white");
+            cargarContenidos();
+        }
+
+        async function abrirModal(idContenido) {
+            try {
+                const response = await fetch(`${API_BASE}/contenidos/${idContenido}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    const c = result.data;
+                    const header = document.getElementById("modal-header");
+                    const content = document.getElementById("modal-content");
+                    
+                    header.innerHTML = `
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold" style="background-color: ${c.color_hex}">
+                                ${c.id_facultad}
+                            </div>
+                            <div>
+                                <h2 class="text-2xl font-bold text-gray-900">${c.titulo}</h2>
+                                <div class="flex flex-wrap items-center gap-2 text-sm text-gray-500">
+                                    <span>${c.facultad_nombre} • ${c.tipo}</span>
+                                    ${c.created_at ? `
+                                        <span class="flex items-center">
+                                            <i class="far fa-calendar-alt mr-1"></i>
+                                            ${new Date(c.created_at).toLocaleDateString('es-ES', { 
+                                                year: 'numeric', 
+                                                month: 'short', 
+                                                day: 'numeric',
+                                                hour: '2-digit',
+                                                minute: '2-digit'
+                                            })}
+                                        </span>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    content.innerHTML = `
+                        <div class="space-y-4">
+                            <div>
+                                <h3 class="font-semibold text-gray-900 mb-2">Resumen</h3>
+                                <p class="text-gray-700">${c.resumen}</p>
+                            </div>
+                            ${c.key_concepts && c.key_concepts.length > 0 ? `
+                                <div>
+                                    <h3 class="font-semibold text-gray-900 mb-2">Conceptos Clave</h3>
+                                    <div class="flex flex-wrap gap-2">
+                                        ${c.key_concepts.map(k => `<span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm">${k}</span>`).join("")}
+                                    </div>
+                                </div>
+                            ` : ""}
+                            ${c.main_actors && c.main_actors.length > 0 ? `
+                                <div>
+                                    <h3 class="font-semibold text-gray-900 mb-2">Actores Principales</h3>
+                                    <ul class="list-disc list-inside text-gray-700">
+                                        ${c.main_actors.map(a => `<li>${a}</li>`).join("")}
+                                    </ul>
+                                </div>
+                            ` : ""}
+                            ${c.case_studies && c.case_studies.length > 0 ? `
+                                <div>
+                                    <h3 class="font-semibold text-gray-900 mb-2">Casos de Estudio</h3>
+                                    <ul class="list-disc list-inside text-gray-700">
+                                        ${c.case_studies.map(cs => `<li>${cs}</li>`).join("")}
+                                    </ul>
+                                </div>
+                            ` : ""}
+                            ${c.future_trends && c.future_trends.length > 0 ? `
+                                <div>
+                                    <h3 class="font-semibold text-gray-900 mb-2">Tendencias Futuras</h3>
+                                    <ul class="list-disc list-inside text-gray-700">
+                                        ${c.future_trends.map(ft => `<li>${ft}</li>`).join("")}
+                                    </ul>
+                                </div>
+                            ` : ""}
+                            <div class="flex gap-2 pt-4">
+                                ${c.url_ver ? `<a href="${c.url_ver}" target="_blank" class="flex-1 bg-blue-500 text-white px-4 py-2 rounded-lg text-center hover:bg-blue-600">Ver Artículo</a>` : ""}
+                                <button class="flex-1 bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300">Descargar</button>
+                                <button onclick="eliminarContenido('${c.id_contenido}')" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    
+                    document.getElementById("modal").classList.remove("hidden");
+                }
+            } catch (error) {
+                console.error("Error cargando detalle:", error);
+            }
+        }
+
+        function closeModal() {
+            document.getElementById("modal").classList.add("hidden");
+        }
+
+        // Cerrar modal al hacer clic fuera
+        document.getElementById("modal").addEventListener("click", (e) => {
+            if (e.target === document.getElementById("modal")) {
+                closeModal();
+            }
+        });
+
+        // =========================================================
+        // FUNCIONES PARA PANEL DE CREAR CARD
+        // =========================================================
+
+        let facultadesList = [];
+        let temasList = [];
+
+        async function cargarDatosParaFormulario() {
+            try {
+                // Cargar facultades
+                const facResponse = await fetch(`${API_BASE}/facultades`);
+                const facResult = await facResponse.json();
+                if (facResult.success) {
+                    facultadesList = facResult.data;
+                    const selectFacultad = document.getElementById("id-facultad");
+                    selectFacultad.innerHTML = '<option value="">Seleccionar facultad...</option>' +
+                        facResult.data.map(f => `<option value="${f.id_facultad}">${f.nombre}</option>`).join("");
+                }
+
+                // Cargar temas
+                const temasResponse = await fetch(`${API_BASE}/temas`);
+                const temasResult = await temasResponse.json();
+                if (temasResult.success) {
+                    temasList = temasResult.data;
+                    const selectTema = document.getElementById("id-tema");
+                    selectTema.innerHTML = '<option value="">Seleccionar tema...</option>' +
+                        temasResult.data.map(t => `<option value="${t.id_tema}">${t.nombre}</option>`).join("");
+                }
+            } catch (error) {
+                console.error("Error cargando datos para formulario:", error);
+            }
+        }
+
+        function abrirPanelCrear() {
+            const panel = document.getElementById("panel-crear");
+            panel.classList.remove("hidden");
+            cargarDatosParaFormulario();
+            document.body.style.overflow = "hidden";
+        }
+
+        function cerrarPanelCrear() {
+            const panel = document.getElementById("panel-crear");
+            panel.classList.add("hidden");
+            document.getElementById("form-crear-card").reset();
+            document.getElementById("form-message").classList.add("hidden");
+            document.body.style.overflow = "auto";
+        }
+
+        // Cerrar panel al hacer clic fuera
+        document.getElementById("panel-crear").addEventListener("click", (e) => {
+            if (e.target === document.getElementById("panel-crear")) {
+                cerrarPanelCrear();
+            }
+        });
+
+        // Función para obtener un elemento aleatorio de un array
+        function getRandomElement(array) {
+            return array[Math.floor(Math.random() * array.length)];
+        }
+
+        // Función para llenar el formulario con datos de prueba
+        function llenarDatosPrueba() {
+            // Arrays de opciones para selección aleatoria
+            const tiposFuente = ['Artículo', 'Libro', 'Estudio', 'Investigación', 'Tesis', 'Paper', 'Reporte', 'Noticia'];
+            const emociones = ['Miedo', 'Preocupación', 'Conflicto', 'Curiosidad', 'Duda', 'Interés', 'Esperanza', 'Riesgo'];
+            const tipos = ['Debate', 'Análisis', 'Estudio'];
+            const temas = ['Tecnología', 'Ciencias', 'Artes', 'Humanidades', 'Salud', 'Ingeniería', 'Negocios'];
+            const facultades = [
+                { id: '1', nombre: 'Ingeniería' },
+                { id: '2', nombre: 'Ciencias' },
+                { id: '3', nombre: 'Medicina' },
+                { id: '4', nombre: 'Arquitectura' },
+                { id: '5', nombre: 'Derecho' },
+                { id: '6', nombre: 'Economía' },
+                { id: '7', nombre: 'Artes' }
+            ];
+
+            // Seleccionar valores aleatorios
+            const tipoFuenteRandom = getRandomElement(tiposFuente);
+            const emocionRandom = getRandomElement(emociones);
+            const tipoRandom = getRandomElement(tipos);
+            const temaRandom = getRandomElement(temas);
+            const facultadRandom = getRandomElement(facultades);
+            const intensidadRandom = (Math.random()).toFixed(2);
+
+            // Seleccionar opciones en los selects
+            const selectFacultad = document.getElementById('id-facultad');
+            const selectTema = document.getElementById('id-tema');
+            const selectTipo = document.getElementById('tipo');
+            const selectEmocion = document.getElementById('emocion-dominante');
+            
+            // Establecer valores seleccionados
+            if (selectFacultad) {
+                // Buscar si ya existe la opción en el select
+                let optionFound = false;
+                for (let i = 0; i < selectFacultad.options.length; i++) {
+                    if (selectFacultad.options[i].value === facultadRandom.id) {
+                        selectFacultad.value = facultadRandom.id;
+                        optionFound = true;
+                        break;
+                    }
+                }
+                // Si no se encontró la opción, agregarla
+                if (!optionFound && selectFacultad.options.length > 0) {
+                    selectFacultad.value = selectFacultad.options[1].value; // Usar la primera opción disponible
+                }
+            }
+
+            if (selectTema) {
+                // Intentar seleccionar un tema existente o usar el primero disponible
+                selectTema.value = selectTema.options.length > 1 ? selectTema.options[1].value : '';
+            }
+
+            // Establecer valores fijos con opciones aleatorias
+            if (selectTipo) selectTipo.value = tipoRandom;
+            if (selectEmocion) selectEmocion.value = emocionRandom;
+            
+            // Llenar campos de texto con valores aleatorios
+            document.getElementById('titulo').value = `Prueba de ${tipoRandom.toLowerCase()} sobre ${temaRandom}`;
+            document.getElementById('resumen').value = `Este es un ${tipoRandom.toLowerCase()} de prueba sobre ${temaRandom}. Contiene información de ejemplo que será utilizada para propósitos de desarrollo y pruebas. La emoción dominante es ${emocionRandom.toLowerCase()} con una intensidad de ${intensidadRandom}.`;
+            document.getElementById('tipo-fuente').value = tipoFuenteRandom;
+            document.getElementById('origen-fuente').value = `Fuente de ${temaRandom}`;
+            document.getElementById('url-ver').value = `https://ejemplo.com/${temaRandom.toLowerCase().replace(/\s+/g, '-')}`;
+            document.getElementById('url-descargar').value = `https://ejemplo.com/descargar/${temaRandom.toLowerCase().replace(/\s+/g, '-')}`;
+            document.getElementById('emocion-intensidad').value = intensidadRandom;
+            
+            // Llenar tags (etiquetas)
+            const tags = [temaRandom.toLowerCase(), tipoRandom.toLowerCase(), 'prueba', 'desarrollo', 'test'];
+            document.getElementById('tags').value = tags.join(', ');
+            
+            // Llenar conceptos clave
+            const conceptos = [`Concepto clave de ${temaRandom}`, 'Concepto secundario', 'Término importante'];
+            document.getElementById('conceptos-clave').value = conceptos.join(', ');
+            
+            // Llenar actores principales
+            const actores = ['Investigador Principal', 'Equipo de Desarrollo', 'Instituciones Relacionadas'];
+            document.getElementById('actores-principales').value = actores.join(', ');
+            
+            // Llenar estudios de caso
+            const casos = [`Caso de estudio 1 en ${temaRandom}`, 'Caso comparativo', 'Análisis de situación'];
+            document.getElementById('estudios-caso').value = casos.join(', ');
+            
+            // Llenar tendencias futuras
+            const tendencias = [`Futuro de ${temaRandom}`, 'Tendencias emergentes', 'Desarrollos futuros'];
+            document.getElementById('tendencias-futuras').value = tendencias.join(', ');
+            
+            // Mostrar mensaje de éxito
+            alert(`¡Datos de prueba cargados!\nTipo: ${tipoRandom}\nTema: ${temaRandom}\nFacultad: ${facultadRandom.nombre}\nEmoción: ${emocionRandom} (${intensidadRandom})`);
+        }
+
+        // Función para eliminar un contenido
+        async function eliminarContenido(idContenido) {
+            if (!confirm('¿Estás seguro de que deseas eliminar este contenido? Esta acción no se puede deshacer.')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/contenidos/${idContenido}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.status === 204) {
+                    // Cerrar el modal
+                    closeModal();
+                    // Mostrar mensaje de éxito
+                    alert('El contenido se ha eliminado correctamente');
+                    // Recargar la lista de contenidos
+                    cargarContenidos();
+                } else {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Error al eliminar el contenido');
+                }
+            } catch (error) {
+                console.error('Error al eliminar el contenido:', error);
+                alert('Error al eliminar el contenido: ' + error.message);
+            }
+        }
+
+        // Manejar envío del formulario
+        document.getElementById("form-crear-card").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            
+            const formMessage = document.getElementById("form-message");
+            formMessage.classList.add("hidden");
+
+            // Obtener valores del formulario
+            const tagsInput = document.getElementById("tags").value;
+            const tags = tagsInput ? tagsInput.split(",").map(t => t.trim()).filter(t => t) : [];
+
+            const contenidoData = {
+                // id_contenido se genera automáticamente en el backend
+                id_tema: document.getElementById("id-tema").value,
+                id_facultad: document.getElementById("id-facultad").value,
+                tipo: document.getElementById("tipo").value,
+                titulo: document.getElementById("titulo").value.trim(),
+                resumen: document.getElementById("resumen").value.trim(),
+                emocion_dominante: document.getElementById("emocion-dominante").value || null,
+                emocion_intensidad: document.getElementById("emocion-intensidad").value ? 
+                    parseFloat(document.getElementById("emocion-intensidad").value) : null,
+                tipo_fuente: document.getElementById("tipo-fuente").value || null,
+                origen_fuente: document.getElementById("origen-fuente").value.trim() || null,
+                url_ver: document.getElementById("url-ver").value.trim() || null,
+                url_descargar: document.getElementById("url-descargar").value.trim() || null,
+                tags: tags
+            };
+
+            try {
+                const response = await fetch(`${API_BASE}/contenidos`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(contenidoData)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    formMessage.className = "p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg";
+                    formMessage.innerHTML = `
+                        <div class="flex items-start gap-2">
+                            <i class="fas fa-check-circle mt-1"></i>
+                            <div>
+                                <p class="font-semibold">${result.message}</p>
+                                <p class="text-sm mt-1">ID generado: <code class="bg-green-200 px-2 py-1 rounded">${result.id_contenido}</code></p>
+                            </div>
+                        </div>
+                    `;
+                    formMessage.classList.remove("hidden");
+
+                    // Limpiar formulario
+                    document.getElementById("form-crear-card").reset();
+
+                    // Recargar contenidos después de 1 segundo
+                    setTimeout(() => {
+                        cargarContenidos();
+                        cerrarPanelCrear();
+                    }, 1500);
+                } else {
+                    formMessage.className = "p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg";
+                    formMessage.innerHTML = `<i class="fas fa-exclamation-circle mr-2"></i>Error: ${result.error}`;
+                    formMessage.classList.remove("hidden");
+                }
+            } catch (error) {
+                formMessage.className = "p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg";
+                formMessage.innerHTML = `<i class="fas fa-exclamation-circle mr-2"></i>Error al crear el contenido: ${error.message}`;
+                formMessage.classList.remove("hidden");
+            }
+        });
+    </script>
+</body>
+</html>
