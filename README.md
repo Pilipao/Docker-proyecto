@@ -939,6 +939,4 @@ Para problemas o preguntas:
 
 **Desarrollado con ❤️ para la gestión de contenidos de investigación**
 
-#   D o c k e r - p r o y e c t o 
- 
- 
+#
