@@ -8,6 +8,10 @@ set -e
 
 echo "Configurando PostgreSQL como servidor PRIMARY para replicación..."
 
+# Crear directorio de archivos si no existe
+mkdir -p /var/lib/postgresql/archive
+
+
 # Esperar a que PostgreSQL esté listo
 until pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"; do
   echo "Esperando a que PostgreSQL esté listo..."

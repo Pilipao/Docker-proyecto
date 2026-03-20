@@ -1,4 +1,7 @@
-version: '3.8'
+# =========================================================
+# DOCKER COMPOSE CONFIGURATION
+# =========================================================
+
 
 services:
   # =========================================================
@@ -22,7 +25,8 @@ services:
       - ./scripts/postgres-primary-init.sh:/docker-entrypoint-initdb.d/01-replication-setup.sh:ro
       - ./scripts/configure-pg-hba.sh:/docker-entrypoint-initdb.d/02-configure-pg-hba.sh:ro
       - postgres_primary_data:/var/lib/postgresql/data
-      - ./logs/primary:/var/lib/postgresql/data/pg_log
+      - ./logs/primary:/var/log/postgresql
+      - postgres_primary_archive:/var/lib/postgresql/archive
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_PRIMARY_USER:-postgres_user} -d ${DB_PRIMARY_NAME:-synthetic_data_db}"]
       interval: ${HEALTHCHECK_INTERVAL:-10s}
@@ -41,7 +45,7 @@ services:
       -c log_statement=all
       -c log_destination='stderr'
       -c logging_collector=on
-      -c log_directory='pg_log'
+      -c log_directory='/var/log/postgresql'
       -c log_filename='postgresql-%Y-%m-%d_%H%M%S.log'
       -c log_rotation_age=1d
       -c log_rotation_size=100MB
@@ -75,7 +79,7 @@ services:
     volumes:
       - ./scripts/docker-entrypoint-replica.sh:/usr/local/bin/docker-entrypoint-replica.sh:ro
       - postgres_replica_data:/var/lib/postgresql/data
-      - ./logs/replica:/var/lib/postgresql/data/pg_log
+      - ./logs/replica:/var/log/postgresql
     entrypoint: ["/bin/bash", "/usr/local/bin/docker-entrypoint-replica.sh"]
     command: >
       postgres
@@ -83,7 +87,7 @@ services:
       -c log_statement=all
       -c log_destination='stderr'
       -c logging_collector=on
-      -c log_directory='pg_log'
+      -c log_directory='/var/log/postgresql'
       -c log_filename='postgresql-%Y-%m-%d_%H%M%S.log'
       -c log_rotation_age=1d
       -c log_rotation_size=100MB
@@ -117,7 +121,7 @@ services:
     environment:
       # Configuración Primary (Escritura)
       DB_PRIMARY_HOST: ${DB_PRIMARY_HOST:-db-primary}
-      DB_PRIMARY_PORT: ${DB_PRIMARY_PORT:-5432}
+      DB_PRIMARY_PORT: 5432
       DB_PRIMARY_NAME: ${DB_PRIMARY_NAME:-synthetic_data_db}
       DB_PRIMARY_USER: ${DB_PRIMARY_USER:-postgres_user}
       DB_PRIMARY_PASSWORD: ${DB_PRIMARY_PASSWORD:-postgres_password_secure_2024}
@@ -125,7 +129,7 @@ services:
       
       # Configuración Replica (Lectura)
       DB_REPLICA_HOST: ${DB_REPLICA_HOST:-db-replica}
-      DB_REPLICA_PORT: ${DB_REPLICA_PORT:-5432}
+      DB_REPLICA_PORT: 5432
       DB_REPLICA_NAME: ${DB_REPLICA_NAME:-synthetic_data_db}
       DB_REPLICA_USER: ${DB_REPLICA_USER:-postgres_user}
       DB_REPLICA_PASSWORD: ${DB_REPLICA_PASSWORD:-postgres_password_secure_2024}
@@ -181,6 +185,8 @@ volumes:
   postgres_primary_data:
     driver: local
   postgres_replica_data:
+    driver: local
+  postgres_primary_archive:
     driver: local
 
 # =========================================================

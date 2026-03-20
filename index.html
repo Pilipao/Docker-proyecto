@@ -271,7 +271,7 @@
     </div>
 
     <script>
-        const API_BASE = "http://localhost:8000/api";
+        const API_BASE = "/api";
         let facultadSeleccionada = null;
         let todosContenidos = [];
 
@@ -632,23 +632,8 @@
             
             // Llenar tags (etiquetas)
             const tags = [temaRandom.toLowerCase(), tipoRandom.toLowerCase(), 'prueba', 'desarrollo', 'test'];
-            document.getElementById('tags').value = tags.join(', ');
-            
-            // Llenar conceptos clave
-            const conceptos = [`Concepto clave de ${temaRandom}`, 'Concepto secundario', 'Término importante'];
-            document.getElementById('conceptos-clave').value = conceptos.join(', ');
-            
-            // Llenar actores principales
-            const actores = ['Investigador Principal', 'Equipo de Desarrollo', 'Instituciones Relacionadas'];
-            document.getElementById('actores-principales').value = actores.join(', ');
-            
-            // Llenar estudios de caso
-            const casos = [`Caso de estudio 1 en ${temaRandom}`, 'Caso comparativo', 'Análisis de situación'];
-            document.getElementById('estudios-caso').value = casos.join(', ');
-            
-            // Llenar tendencias futuras
-            const tendencias = [`Futuro de ${temaRandom}`, 'Tendencias emergentes', 'Desarrollos futuros'];
-            document.getElementById('tendencias-futuras').value = tendencias.join(', ');
+            const tagsEl = document.getElementById('tags');
+            if (tagsEl) tagsEl.value = tags.join(', ');
             
             // Mostrar mensaje de éxito
             alert(`¡Datos de prueba cargados!\nTipo: ${tipoRandom}\nTema: ${temaRandom}\nFacultad: ${facultadRandom.nombre}\nEmoción: ${emocionRandom} (${intensidadRandom})`);
